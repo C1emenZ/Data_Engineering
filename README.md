@@ -132,7 +132,7 @@ Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker`
 ## 4. Installationsanleitung
 
 1. **Arbeitsverzeichnis vorbereiten**
-   - erzeichnis für das Projekt auswählen
+   - Verzeichnis für das Projekt auswählen
    - Terminal öffnen und zu diesem Verzeichnis navigieren
 
 2. ** GitHub Repository klonen**
