@@ -58,7 +58,7 @@ Dieses Projekt implementiert eine Echtzeit-Datenverarbeitungspipeline für Krypt
 ### 2.2 Voraussetzungen
 
 Für die Installation und Ausführung des Projekts werden folgende Tools benötigt:
-- IDE wie zum Beispiel VS Code
+- IDE zum Beispiel VS Code
 - Docker Desktop 
 
 ### 2.3 Architekturkonzeption
@@ -81,14 +81,14 @@ Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@trade`
 
 **Ticker Stream:**
 ```
-wss://stream.binance.com:9443/ws/<symbol>@ticker_1h  // 1-Stunden-Ticker
+wss://stream.binance.com:9443/ws/<symbol>@ticker_1h  // 1h-Ticker
 ```
 Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker_1h`
 
 <br>
 
 ```
-wss://stream.binance.com:9443/ws/<symbol>@ticker     // 24-Stunden-Ticker
+wss://stream.binance.com:9443/ws/<symbol>@ticker     // 1d-Stunden-Ticker
 ```
 Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker`
 `
@@ -136,12 +136,12 @@ Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker`
    - Terminal öffnen und zu diesem Verzeichnis navigieren
 
 2. ** GitHub Repository klonen**
-```bash
+```
 git clone https://github.com/C1emenZ/Data_Engineering.git
 ```
 
 3. **In Projektverzeichnis wechseln**
-```bash
+```
 cd Data_Engineering
 ```
 
@@ -150,7 +150,7 @@ cd Data_Engineering
    - Die Parameter für PostgreSQL und Grafana anpassen
 
 5. **Services starten**
-```bash
+```
 docker-compose up -d
 ```
 
