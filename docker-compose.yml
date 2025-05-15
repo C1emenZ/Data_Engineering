@@ -1,0 +1,281 @@
+networks:
+  backend:
+    driver: bridge
+
+services:
+  # Zookeeper und Kafka für das Sammeln der Daten aus dem Websocket Producer in Kafka Topics
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend  
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "9998:9998"
+      - "7071:7071"
+    env_file: 
+      - .env
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      JMX_PORT: 9998
+      JMX_PROMETHEUS_PORT: 7071
+      KAFKA_OPTS: -javaagent:/etc/jmx_prometheus_javaagent-1.0.1.jar=7071:/etc/kafka_config.yml
+    volumes:
+       - ./kafka/jmx_prometheus_javaagent-1.0.1.jar:/etc/jmx_prometheus_javaagent-1.0.1.jar
+       - ./kafka/kafka-metrics.yml:/etc/kafka_config.yml
+    depends_on:
+      - zookeeper
+    networks:
+      - backend  
+
+  # Websocket Producer für die Anbindung der Binance Websocket API und Weiterleitung an Kafka
+  websocket-producer:
+    image: websocket-producer
+    build: 
+      context: ./websocket_producer
+      dockerfile: Dockerfile_Websocket
+    hostname: websocket-producer
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    volumes:
+      - ./websocket_producer/get_stream_to_kafka_topic.py:/tmp/get_stream_to_kafka_topic.py   
+    command: ["python", "/tmp/get_stream_to_kafka_topic.py"]  
+    depends_on:
+      - kafka
+    networks:
+      - backend  
+
+  # Spark Master als Hauptknoten für die Verarbeitung der Daten 
+  spark-master:
+    image: bitnami/spark:3.5
+    hostname: spark-master 
+    container_name: spark-master
+    ports:
+      - "8088:8088" 
+      - "7077:7077"
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8088                   
+    depends_on:
+      - kafka
+      - postgres
+    networks:
+      - backend    
+
+  # Erstellen von drei Spark-Worker-Knoten für die Datenverarbeitung
+  spark-worker:
+    image: bitnami/spark:3.5
+    hostname: spark-worker 
+    environment: 
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077                  
+    deploy:
+      replicas: 3    
+    depends_on:
+      - spark-master
+    networks:
+      - backend   
+
+  # Definition der eigentlichen Spark-Submits, welche in den Spark-Workern ausgeführt werden
+  spark-submit-1:
+    image: spark-submit
+    build: 
+      context: ./spark
+      dockerfile: Dockerfile_Submit
+    hostname: spark-submit-1
+    container_name: spark-submit-1
+    ports:
+      - "4041:4041"  
+    env_file: 
+      - .env
+    volumes:
+      - ./spark/kafka-clients-3.3.0.jar:/opt/bitnami/spark/jars/kafka-clients-3.3.0.jar
+      - ./spark/postgresql-42.7.5.jar:/opt/bitnami/spark/jars/postgresql-42.7.5.jar 
+      - ./spark/spark-sql-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.0.jar
+      - ./spark/spark-token-provider-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.0.jar 
+      - ./spark/commons-pool2-2.12.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.12.1.jar
+      - ./spark/spark-streaming-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.0.jar 
+      - ./spark/topic_binance_trades_to_postgresql_trades.py:/opt/spark-apps/topic_binance_trades_to_postgresql_trades.py
+    command: ["/opt/bitnami/spark/bin/spark-submit", "--master", "spark://spark-master:7077", "/opt/spark-apps/topic_binance_trades_to_postgresql_trades.py"]                             
+    depends_on:
+      - spark-master
+      - spark-worker        
+    networks:
+      - backend
+
+  spark-submit-2:
+    image: spark-submit
+    build: 
+      context: ./spark
+      dockerfile: Dockerfile_Submit
+    hostname: spark-submit-2
+    container_name: spark-submit-2
+    ports:
+      - "4042:4042"       
+    env_file: 
+      - .env
+    volumes:
+      - ./spark/kafka-clients-3.3.0.jar:/opt/bitnami/spark/jars/kafka-clients-3.3.0.jar
+      - ./spark/postgresql-42.7.5.jar:/opt/bitnami/spark/jars/postgresql-42.7.5.jar 
+      - ./spark/spark-sql-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.0.jar
+      - ./spark/spark-token-provider-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.0.jar 
+      - ./spark/commons-pool2-2.12.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.12.1.jar 
+      - ./spark/spark-streaming-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.0.jar 
+      - ./spark/topic_binance_ticker_1h_to_postgresql_ticker_1h.py:/opt/spark-apps/topic_binance_ticker_1h_to_postgresql_ticker_1h.py                        
+    command: ["/opt/bitnami/spark/bin/spark-submit", "--master", "spark://spark-master:7077", "/opt/spark-apps/topic_binance_ticker_1h_to_postgresql_ticker_1h.py"]        
+    depends_on:
+      - spark-master
+      - spark-worker             
+    networks:
+      - backend
+
+  spark-submit-3:
+    image: spark-submit
+    build: 
+      context: ./spark
+      dockerfile: Dockerfile_Submit
+    hostname: spark-submit-3
+    container_name: spark-submit-3
+    ports:
+      - "4043:4043"      
+    env_file: 
+      - .env
+    volumes:
+      - ./spark/kafka-clients-3.3.0.jar:/opt/bitnami/spark/jars/kafka-clients-3.3.0.jar
+      - ./spark/postgresql-42.7.5.jar:/opt/bitnami/spark/jars/postgresql-42.7.5.jar 
+      - ./spark/spark-sql-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.0.jar
+      - ./spark/spark-token-provider-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.0.jar 
+      - ./spark/commons-pool2-2.12.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.12.1.jar
+      - ./spark/spark-streaming-kafka-0-10_2.12-3.5.0.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.0.jar
+      - ./spark/topic_binance_ticker_1d_to_postgresql_ticker_1d.py:/opt/spark-apps/topic_binance_ticker_1d_to_postgresql_ticker_1d.py
+    command: ["/opt/bitnami/spark/bin/spark-submit", "--master", "spark://spark-master:7077", "/opt/spark-apps/topic_binance_ticker_1d_to_postgresql_ticker_1d.py"]                                        
+    depends_on:
+      - spark-master
+      - spark-worker              
+    networks:
+      - backend
+
+  # Definition der PostgreSQL-Datenbvank für die Speicherung der Daten
+  postgres:
+    image: postgres:15
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    env_file: 
+      - .env  
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_USER}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRES_DB: ${POSTGRESQL_DB}
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend  
+  
+  # Service um Metriken aus verschiedenen anderen Containern zu sammeln
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - kafka
+      - postgres
+      - spark-submit-1
+      - spark-submit-2
+      - spark-submit-3  
+    networks:
+      - backend
+
+  # Dieser Service wird für den Export von Metriken aus PostgreSQL verwendet
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter
+    hostname: postgres-exporter
+    ports:
+      - "9187:9187"
+    env_file: 
+      - .env        
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@postgres:5432/${POSTGRESQL_DB}?sslmode=disable"
+    depends_on:
+      - postgres
+      - prometheus
+    networks:
+      - backend  
+
+  # Speiceherung der Logs, welche durch die verschiedenen Docker-Container erzeugt werden
+  loki:
+    image: grafana/loki:latest
+    hostname: loki
+    container_name: loki
+    user: root
+    ports:
+      - "3100:3100"
+      - "9096:9096"
+    volumes:
+      - ./loki:/loki  
+      - ./loki/config.yml:/etc/loki/config.yml
+    command: -config.file=/etc/loki/config.yml -config.expand-env=true
+    networks:
+      - backend
+
+  # Service um alle neuen Container-Logs zu ermitteln und an Loki zu senden  
+  promtail:
+    image: grafana/promtail:latest
+    hostname: promtail
+    container_name: promtail
+    user: root
+    ports:
+      - "9080:9080"
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml -config.expand-env=true      
+    depends_on:
+      - loki  
+    networks:
+      - backend      
+
+  # Anzeige der Streamingdaten aus Binance sowie von Metriken und Logs über verschiedene Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    hostname: grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    env_file: 
+      - .env        
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/trades-dashboard.json
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - postgres
+      - loki
+      - prometheus
+    networks:
+      - backend

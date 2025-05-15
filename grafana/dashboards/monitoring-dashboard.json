@@ -1,0 +1,340 @@
+{
+  "title": "Monitoring- und Logging-Dashboard",
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 3,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Kafka - Verfügbar",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"kafka\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Spark-1 - Verfügbar",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"spark1\"}",
+          "refId": "F"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Spark-2 - Verfügbar",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"spark2\"}",
+          "refId": "G"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Spark-3 - Verfügbar",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"spark3\"}",
+          "refId": "H"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "PostgreSQL - Verfügbar",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"postgresql\"}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Prometheus - Verfügbar",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"prometheus\"}",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 }
+    },    
+    {
+      "type": "stat",
+      "title": "Kafka Topic Binance.Trades - Nachrichten pro Sekunde",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "kafka_server_messages_in_per_sec{topic=\"binance.trades\"}",
+          "refId": "L"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 0, "y": 4, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Kafka Topic Binance.Ticker_1h - Nachrichten pro Sekunde",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "kafka_server_messages_in_per_sec{topic=\"binance.ticker_1h\"}",
+          "refId": "M"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 4, "y": 4, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "Kafka Topic Binance.Ticker_1d - Nachrichten pro Sekunde",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "kafka_server_messages_in_per_sec{topic=\"binance.ticker_1d\"}",
+          "refId": "N"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 8, "y": 4, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "PostgreSQL - Tabelle Trades - Anzahl der Tabelleneinträge",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"cryptodata\",relname=\"trades\",schemaname=\"public\"}",
+          "refId": "E"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 12, "y": 4, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "PostgreSQL - Tabelle Ticker_1h - Anzahl der Tabelleneinträge",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"cryptodata\",relname=\"ticker_1h\",schemaname=\"public\"}",
+          "refId": "D"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 16, "y": 4, "w": 4, "h": 4 }
+    },
+    {
+      "type": "stat",
+      "title": "PostgreSQL - Tabelle Ticker_1d - Anzahl der Tabelleneinträge",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"cryptodata\",relname=\"ticker_1d\",schemaname=\"public\"}",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "x": 20, "y": 4, "w": 4, "h": 4 }
+    },
+    {
+      "type": "logs",
+      "title": "Log-Einträge der Docker-Container",
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "{job=\"containerlogs\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {"x": 0, "y": 8, "w": 24, "h": 13},
+      "options": {
+        "showLabels": true,
+        "showTime": true,
+        "wrapLogMessage": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      }
+    }         
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] }
+}

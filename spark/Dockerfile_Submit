@@ -1,0 +1,7 @@
+# Spark-Image von Bitnami
+FROM bitnami/spark:3.5
+
+# Weitere Requirements installieren
+COPY requirements.txt /opt/requirements.txt
+RUN pip install -r /opt/requirements.txt
+

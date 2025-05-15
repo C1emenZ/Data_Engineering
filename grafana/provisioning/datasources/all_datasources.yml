@@ -1,0 +1,33 @@
+# Datenquelle für Grafana-Dashboard definieren
+# DB-User, DB-Passwort und DB-Name werden aus den Umgebungsvariablen gelesen
+apiVersion: 1
+
+datasources:
+  # PostgreSQL-Datenquelle
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    isDefault: true
+    url: postgres:5432
+    database: ${POSTGRESQL_DB}
+    user: ${POSTGRESQL_USER}
+    secureJsonData:
+      password: ${POSTGRESQL_PASSWORD}
+    jsonData:
+      sslmode: disable
+
+# Prometheus-Datenquelle
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    jsonData:
+      sslmode: disable
+
+# Loki-Datenquelle
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      sslmode: disable

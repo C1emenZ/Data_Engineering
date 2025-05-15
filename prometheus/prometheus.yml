@@ -1,0 +1,39 @@
+# Definition der Scraping Targets für Prometheus
+
+# Wie oft sollen die Daten aus den Targets abgefragt werden?
+global:
+  scrape_interval: 5s
+
+# Kafka Exporter
+scrape_configs:
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:7071']   
+
+# PostgreSQL Exporter
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres_exporter:9187']  
+
+# Prometheus Exporter
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+# Spark Exporter für Spark-Submit-1
+  - job_name: 'spark1'
+    metrics_path: '/metrics/executors/prometheus'
+    static_configs:
+      - targets: ['spark-submit-1:4041']
+
+# Spark Exporter für Spark-Submit-2
+  - job_name: 'spark2'
+    metrics_path: '/metrics/executors/prometheus'
+    static_configs:
+      - targets: ['spark-submit-2:4042']      
+
+# Spark Exporter für Spark-Submit-3
+  - job_name: 'spark3'
+    metrics_path: '/metrics/executors/prometheus'
+    static_configs:
+      - targets: ['spark-submit-3:4043']   

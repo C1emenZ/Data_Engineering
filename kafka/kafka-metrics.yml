@@ -1,0 +1,68 @@
+# Kafka Metrik Definition
+# Welche Metriken sollen erfasst werden?
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+rules:
+  # Throughput Metrics
+  - pattern: 'kafka.server<type=BrokerTopicMetrics, name=MessagesInPerSec, topic=(.+)><>OneMinuteRate'
+    name: kafka_server_messages_in_per_sec
+    type: GAUGE
+    labels:
+      topic: "$1"
+
+  # Memory Metrics
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>used'
+    name: kafka_server_memory_heap_used_bytes
+    type: GAUGE
+
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>committed'
+    name: kafka_server_memory_heap_committed_bytes
+    type: GAUGE
+
+  # Topic Metrics
+  - pattern: 'kafka.server<type=BrokerTopicMetrics, name=BytesInPerSec, topic=(.+)><>OneMinuteRate'
+    name: kafka_server_topic_bytes_in_per_sec
+    type: GAUGE
+    labels:
+      topic: "$1"
+
+  - pattern: 'kafka.server<type=BrokerTopicMetrics, name=BytesOutPerSec, topic=(.+)><>OneMinuteRate'
+    name: kafka_server_topic_bytes_out_per_sec
+    type: GAUGE
+    labels:
+      topic: "$1"
+
+  # Total Messages
+  - pattern: 'kafka.server<type=BrokerTopicMetrics, name=MessagesInPerSec, topic=(.+)><>Count'
+    name: kafka_server_topic_messages_in_total
+    type: COUNTER
+    labels:
+      topic: "$1"
+
+  - pattern: 'kafka.server<type=BrokerTopicMetrics, name=BytesInPerSec, topic=(.+)><>Count'
+    name: kafka_server_topic_bytes_in_total
+    type: COUNTER
+    labels:
+      topic: "$1"
+
+  # Partition Metrics
+  - pattern: 'kafka.server<type=ReplicaManager, name=PartitionCount><>Value'
+    name: kafka_server_partition_count
+    type: GAUGE
+
+  # Request Metrics
+  - pattern: 'kafka.network<type=RequestMetrics, name=RequestsPerSec, request=(.+)><>OneMinuteRate'
+    name: kafka_server_request_rate
+    type: GAUGE
+    labels:
+      request: "$1"
+
+  # CPU Metrics
+  - pattern: 'java.lang<type=OperatingSystem><CpuLoad>'
+    name: kafka_server_cpu_load
+    type: GAUGE
+
+  - pattern: 'java.lang<type=OperatingSystem><SystemCpuLoad>'
+    name: kafka_server_system_cpu_load
+    type: GAUGE

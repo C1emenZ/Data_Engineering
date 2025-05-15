@@ -1,0 +1,253 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "id": null,
+  "title": "Crypto Dashboard",
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "symbol",
+        "type": "custom",
+        "label": "Auswahl Kryptowährung",
+        "query": "BTCUSDT,ETHUSDT,SOLUSDT",
+        "current": {
+          "text": "BTCUSDT",
+          "value": "BTCUSDT"
+        },
+        "includeAll": false,
+        "multi": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Aktueller Kurswert (Graph)",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "H",
+          "rawSql": "SELECT to_timestamp(event_time / 1000) AS time, last_price AS \"Aktueller Kurswert $symbol in USD\" FROM ticker_1h WHERE symbol = '$symbol' ORDER BY time DESC LIMIT 500"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "$",
+          "decimals": 2
+        }
+      },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Aktueller Kurswert",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "E",
+          "rawSql": "SELECT last_price AS value, NOW() AS time FROM ticker_1h WHERE symbol = '$symbol' ORDER BY event_time DESC LIMIT 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "$",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "gray", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 3, "w": 8, "x": 0, "y": 6 }
+    },
+    {
+      "type": "stat",
+      "title": "Prozentuale Preisänderung im Vergleich zum Kurswert vor 1h ",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "C",
+          "rawSql": "SELECT price_change_percent AS value, NOW() AS time FROM ticker_1h WHERE symbol = '$symbol' ORDER BY event_time DESC LIMIT 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "noValue": "No data"
+      },
+      "gridPos": { "h": 3, "w": 8, "x": 8, "y": 6 }
+    },    
+    {
+      "type": "stat",
+      "title": "Prozentuale Preisänderung im Vergleich zum Kurswert vor 24h",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "D",
+          "rawSql": "SELECT price_change_percent AS value, NOW() AS time FROM ticker_1d WHERE symbol = '$symbol' ORDER BY event_time DESC LIMIT 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 0 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 3, "w": 8, "x": 16, "y": 6 }
+    },
+    {
+      "type": "stat",
+      "title": "Niedrigster Kurswert im Verlauf der letzten 24h",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "B",
+          "rawSql": "SELECT MIN(low_price) AS value, NOW() AS time FROM ticker_1d WHERE symbol = '$symbol'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "$",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 3, "w": 8, "x": 0, "y": 9 }
+    },
+    {
+      "type": "stat",
+      "title": "Höchster Kurswert im Verlauf der letzten 24h",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "A",
+          "rawSql": "SELECT MAX(high_price) AS value, NOW() AS time FROM ticker_1d WHERE symbol = '$symbol'"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "$",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 3, "w": 8, "x": 8, "y": 9 }
+    },
+    {
+      "type": "stat",
+      "title": "Insgesamte Anzahl an Trades in den letzten 24h",
+      "targets": [
+        {
+          "format": "time_series",
+          "refId": "F",
+          "rawSql": "SELECT total_trades AS value, NOW() AS time FROM ticker_1d WHERE symbol = '$symbol' ORDER BY event_time DESC LIMIT 1"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "gray", "value": null }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 3, "w": 8, "x": 16, "y": 9 }
+    },
+    {
+      "type": "table",
+      "title": "Aktuelle Trades:",
+      "targets": [
+        {
+          "format": "table",
+          "refId": "G",
+          "rawSql": "SELECT to_timestamp(event_time / 1000) AS Timestamp, trade_id AS \"Trade ID\", price AS \"Aktueller Kurswert (USD)\", quantity AS \"Menge\", price * quantity AS \"Insgesamter Wert (USD)\" FROM trades WHERE symbol = '$symbol' ORDER BY Timestamp DESC LIMIT 100"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Aktueller Kurswert (USD)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "$"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Insgesamter Wert (USD)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "$"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }          
+        ]
+      },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 12 }
+    }
+  ]
+}
