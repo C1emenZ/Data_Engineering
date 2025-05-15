@@ -135,7 +135,7 @@ Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker`
    - Verzeichnis für das Projekt auswählen
    - Terminal öffnen und zu diesem Verzeichnis navigieren
 
-2. ** GitHub Repository klonen**
+2. **GitHub Repository klonen**
 ```
 git clone https://github.com/C1emenZ/Data_Engineering.git
 ```
