@@ -88,10 +88,10 @@ Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker_1h`
 <br>
 
 ```
-wss://stream.binance.com:9443/ws/<symbol>@ticker     // 1d-Stunden-Ticker
+wss://stream.binance.com:9443/ws/<symbol>@ticker     // 1d-Ticker
 ```
 Beispiel: `wss://stream.binance.com:9443/ws/btcusdt@ticker`
-`
+
 
 <br>
 
