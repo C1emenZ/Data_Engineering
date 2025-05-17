@@ -147,8 +147,12 @@ cd Data_Engineering
 
 4. **Umgebungsvariablen einrichten**
    - Die Datei `.env.beispiel` in `.env` umbenennen
-   - Die Parameter für PostgreSQL und Grafana anpassen
-
+   - Parameter der `.env`-Datei setzen:
+     - PostgreSQL-User
+     - PostgreSQL-Passwort
+     - PostgreSQL-Datenbank
+     - Grafana-User
+     - Grafana-Passwort
 5. **Services starten**
 ```
 docker-compose up -d

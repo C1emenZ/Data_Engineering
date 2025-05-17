@@ -208,7 +208,7 @@
         {
           "format": "table",
           "refId": "G",
-          "rawSql": "SELECT to_timestamp(event_time / 1000) AS Timestamp, trade_id AS \"Trade ID\", price AS \"Aktueller Kurswert (USD)\", quantity AS \"Menge\", price * quantity AS \"Insgesamter Wert (USD)\" FROM trades WHERE symbol = '$symbol' ORDER BY Timestamp DESC LIMIT 100"
+          "rawSql": "SELECT to_timestamp(event_time / 1000) AS Timestamp, trade_id AS \"Trade ID\", price AS \"Aktueller Kurswert (USD)\", quantity AS \"Menge\", price * quantity AS \"Gesamtwert (USD)\" FROM trades WHERE symbol = '$symbol' ORDER BY Timestamp DESC LIMIT 100"
         }
       ],
       "fieldConfig": {
@@ -232,7 +232,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Insgesamter Wert (USD)"
+              "options": "Gesamtwert (USD)"
             },
             "properties": [
               {

@@ -240,7 +240,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"cryptodata\",relname=\"trades\",schemaname=\"public\"}",
+          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"$db\",relname=\"trades\",schemaname=\"public\"}",
           "refId": "E"
         }
       ],
@@ -265,7 +265,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"cryptodata\",relname=\"ticker_1h\",schemaname=\"public\"}",
+          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"$db\",relname=\"ticker_1h\",schemaname=\"public\"}",
           "refId": "D"
         }
       ],
@@ -290,7 +290,7 @@
       "datasource": "Prometheus",
       "targets": [
         {
-          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"cryptodata\",relname=\"ticker_1d\",schemaname=\"public\"}",
+          "expr": "pg_stat_user_tables_n_tup_ins{datname=\"$db\",relname=\"ticker_1d\",schemaname=\"public\"}",
           "refId": "C"
         }
       ],
@@ -335,6 +335,21 @@
       }
     }         
   ],
-  "templating": { "list": [] },
+"templating": {
+  "list": [
+    {
+      "name": "db",
+      "type": "query",
+      "label": "PostgreSQL DB",
+      "datasource": "Prometheus",
+      "refresh": 1,
+      "query": "label_values(pg_stat_user_tables_n_tup_ins, datname)",
+      "includeAll": false,
+      "multi": false,
+      "sort": 1,
+      "hide": 2
+    }
+  ]
+},
   "annotations": { "list": [] }
 }
