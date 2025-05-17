@@ -15,11 +15,14 @@
    - [3.2 Datenstruktur](#32-datenstruktur)
 4. [Installationsanleitung](#4-installationsanleitung)
 5. [Beispiel](#5-beispiel)
-   - [5.1 Start der Pipeline](#51-start-der-pipeline)
-   - [5.2 Grafana - Dashboards](#52-grafana---dashboards)
-   - [5.3 Prometheus](#53-prometheus)
-   - [5.4 Promtail](#54-promtail)
-   - [5.5 Spark](#55-spark)
+6. [Mögliche Probleme und Lösungsansätze](#6-mögliche-probleme-und-lösungsansätze)
+   - [6.1 Start der Pipeline](#61-start-der-pipeline)
+   - [6.2 WebSocket Producer](#62-websocket-producer)
+   - [6.3 Spark](#63-spark)
+   - [6.4 Prometheus](#64-prometheus)
+   - [6.5 Promtail](#65-promtail)
+7. [Bekannte Fehlermeldungen](#7-bekannte-fehlermeldungen)
+   - [7.1 Loki - Fehlermeldung: "negative structured metadata bytes received"](#71-loki---fehlermeldung-negative-structured-metadata-bytes-received)
 
 ## 1. Einleitung
 
@@ -160,20 +163,6 @@ docker-compose up -d
 
 ## 5. Beispiel
 
-### 5.1 Start der Pipeline
-Nach dem Start der Docker Container mit `docker-compose up -d` kann der Start der Pipeline über zwei Möglichkeiten überprüft werden:
-
-1. **Terminal-Ausgabe:**
-<div align="center">
-  <img src="abbildungen/Dockercontainer_Terminal.png" alt="Erfolgreicher Start der Container im Terminal">
-</div>
-
-2. **Docker Desktop Ansicht:**
-<div align="center">
-  <img src="abbildungen/Dockercontainer.png" alt="Laufende Container in Docker Desktop">
-</div>
-
-### 5.2 Grafana - Dashboards 
 Über http://localhost:3000 kann Grafana geöffnet werden. Dabei muss sich zuerst mit dem User und Passwort angemeldet werden, welches vorher in der .env-Datei gesetzt wurde.
 <div align="center">
   <img src="abbildungen/Grafana_Login.png" alt="Grafana_Login">
@@ -202,20 +191,37 @@ Im größereren Fenster darunter werden alle Logs der aktuell laufenden Docker C
   <img src="abbildungen/Monitoring_Dashboard.png" alt="Monitoring">
 </div>
 
-### 5.3 Prometheus
-Über http://localhost:9090/targets können alle Services überprüft werden, welche aktuell in Prometheus definiert sind und aus denen regelmäßig Metriken abgeholt werden. 
+
+## 6. Mögliche Probleme und Lösungsansätze
+Grundsätzlich bietet das Montoring-Dashboard einen guten Überblick für eine erste Fehleranalyse. In den Logs bzw. den Weboberflächen bestimnmter Container können zusätzlich detaillietere Informationen gefunden werden. Zum Beispiel kann über die Anzahl an Nachrichten pro Sekunde in den Kafka Topics geprüft werden, ob überhaupt Daten gesendet werden. Die Anzahl der Tabelleneinträge zeigt, ob die Verarbeitung in Spark korrekt funktiniert. Somit können mögliche Fehlerquellen schnell eingegrenzt werden. 
+ 
+### 6.1 Start der Pipeline
+Nach dem Start der Docker Container mit `docker-compose up -d` kann der Start der Pipeline über zwei Möglichkeiten überprüft werden:
+
+1. **Terminal-Ausgabe:**
 <div align="center">
-  <img src="abbildungen/Prometheus_Targets.png" alt="Prometheus">
+  <img src="abbildungen/Dockercontainer_Terminal.png" alt="Erfolgreicher Start der Container im Terminal">
 </div>
 
-### 5.4 Promtail
-Die Logs der Container werden über Promtail gesammelt. Dabei wird zuerst das Verzeichnis definiert, welches durch Promtail überwacht werden soll. Werden neue Zeilen zu den dort gespeicherten Logdateien hinzugefügt, werden diese automatisch an Loki gesendet und dort für die Visualisierung in Grafana gespeichert. Promtail kann über http://localhost:9080/targets aufgerufen werden. 
+2. **Docker Desktop Ansicht:**
 <div align="center">
-  <img src="abbildungen/Promtail_Targets.png" alt="Promtail">
+  <img src="abbildungen/Dockercontainer.png" alt="Laufende Container in Docker Desktop">
 </div>
 
-### 5.5 Spark
-Die eigentliche Datenverarbeitung findet in den Spark-Workern statt. Dabei werden die Aufgaben über den Spark-Master an die verschiedenen Spark-Worker verteilt. Über http://localhost:8088/ kann diese Ausführung überwacht werden.
+
+#### 6.2 WebSocket Producer
+Im Log des WebSocket Producer können weitere Informationen zu den WebSocket Streams und Kafka Topics gefunden werden. Am Anfang der Verarbeitung werden alle Streams sowie Kafka Topics registriert: 
+<div align="center">
+  <img src="abbildungen/WebSocket_Producer_Log_Start.png" alt="WebSocket Producer Start">
+</div>
+
+Zusätzlich wird für jede Nachricht ein kurzer Logeintrag geschrieben. Dabei wird zuerst immer das Kafka Topic und danach ein Ausschnitt aus der eigentlichen Nachricht gesendet:
+<div align="center">
+  <img src="abbildungen/WebSocket_Producer_Log_Verarbeitung.png" alt="WebSocket Producer Verarbeitung">
+</div>
+
+### 6.3
+Die eigentliche Datenverarbeitung findet in den Spark-Workern statt. Dabei werden die Aufgaben, welche über die Spark-Submits definiert sind über den Spark-Master an die verschiedenen Spark-Worker verteilt. Über http://localhost:8088/ kann diese Ausführung überwacht werden.
 <div align="center">
   <img src="abbildungen/Spark_Master.png" alt="Spark_Master">
 </div>
@@ -227,3 +233,42 @@ In den Spark-Submits (http://localhost:4041/jobs/, http://localhost:4042/jobs/, 
   <img src="abbildungen/Spark_Submit.png" alt="Spark_Submit">
 </div>
 
+
+Beim Start der Sparkverarbeitung wird wieder ein Verbindungstest zu Kakfa gemacht und solange gewartet, bis die benötigten Kafka Topics verfügbar sind: 
+Spark Submit 
+<div align="center">
+  <img src="abbildungen/Spark_Submit_Log.png" alt="Spark_Submit_Log">
+</div>
+
+Ein mögliches Problem kann die Zuweisung an Cores zu den einzelnen Spark-Workern werden. Unter Umständen kann es dazu kommen, dass einem der Spark Worker keine Cores zugeordnet werden bzw. diese durch die anderen Spark Worker belegt werden. Dadurch kann dann die entsprechende Aufgabe nicht ausgeführt werden: 
+
+<div align="center">
+  <img src="abbildungen/Spark_Submit_Error.png" alt="Spark_Submit_Error">
+</div>
+
+Prinzipiell werden die Cores dynamisch ermittelt und beim Erstellen der Sparkumgebung gesetzt. Falls 
+Fehler mit der Zuweisung der Cores nicht funktioniert kann die Anzahl an folgender Stelle auch manuell gesetzt werden: <br>
+
+`.config("spark.cores.max", cores)\` -> cores dann durch eine bestimmte Anzahl ersetzen <br>
+
+Folgende Python-Skripte sind aktuell relevant:
+- topic_binance_trades_to_postgresql_trades.py
+- topic_binance_ticker_1h_to_postgresql_ticker_1h.py
+- topic_binance_ticker_1d_to_postgresql_ticker_1d.py
+### 6.4 Prometheus
+Über http://localhost:9090/targets können alle Services überprüft werden, welche aktuell in Prometheus definiert sind und aus denen regelmäßig Metriken abgeholt werden. 
+<div align="center">
+  <img src="abbildungen/Prometheus_Targets.png" alt="Prometheus">
+</div>
+
+### 6.5 Promtail
+Die Logs der Container werden über Promtail gesammelt. Dabei wird zuerst das Verzeichnis definiert, welches durch Promtail überwacht werden soll. Werden neue Zeilen zu den dort gespeicherten Logdateien hinzugefügt, werden diese automatisch an Loki gesendet und dort für die Visualisierung in Grafana gespeichert. Promtail kann über http://localhost:9080/targets aufgerufen werden. 
+<div align="center">
+  <img src="abbildungen/Promtail_Targets.png" alt="Promtail">
+</div>
+
+
+
+## 7. Bekannte Fehlermeldungen 
+### 7.1 Loki - Fehlermeldung: "negative structured metadata bytes received"
+Dies ist kein richtiger Fehler sondern ein bekanntes Problem in Grafana Loki und kann ignoriert werden. Weitere Informationen zu diesem Thema können hier gefunden werden: https://github.com/grafana/loki/issues/17371
