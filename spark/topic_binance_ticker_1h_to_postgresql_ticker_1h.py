@@ -61,13 +61,14 @@ def wait_for_kafka_topic():
 if not wait_for_kafka_topic():
     sys.exit(1)
 
-
+cores = os.cpu_count() 
+print (f"Verfügbare Cores: {cores}")
 
 # Ab hier beginnt die eigentliche Spark-Streaming-Anwendung
 # Spark Session starten
 # Setzen der verschiedenen Jars, welche im Dockerfile heruntergeladen und installiert werden
 # Diese müssen hier angegeben werden, damit Spark sie auch findet
-# Limitieren der Anzahl an Cores auf 16, da sonst ein Stream alle Ressourcen belegen würde und die
+# Limitieren der Anzahl an Cores, da sonst ein Stream alle Ressourcen belegen würde und die
 # anderen Streams nicht ausgeführt werden können
 spark = SparkSession.builder \
      .appName("Kafka_Ticker_1h_to_Postgresql_Ticker_1h") \
@@ -78,8 +79,8 @@ spark = SparkSession.builder \
                              "/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.0.jar,"
                              "/opt/bitnami/spark/jars/commons-pool2-2.12.1.jar,"
                              "/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.0.jar") \
-     .config("spark.cores.max", "16") \
      .config("spark.ui.port", "4042") \
+     .config("spark.cores.max", cores) \
      .config("spark.ui.prometheus.enabled", "true") \
      .getOrCreate()
 
