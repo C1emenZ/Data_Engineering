@@ -18,7 +18,7 @@ load_dotenv()
 # Parameter für Kafka Verbindungstest
 BOOTSTRAP_SERVERS = "kafka:29092"
 TOPIC_NAME = "binance.trades"
-MAX_RETRIES = 10
+MAX_RETRIES = 30
 SLEEP_INTERVAL = 3  
 
 

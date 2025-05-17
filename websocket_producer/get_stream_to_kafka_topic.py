@@ -11,7 +11,7 @@ KAFKA_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
 # Methode zum Erstellen des Kafka-Producer
 # Nach 10 Versuchen wird eine Exception geworfen
 def create_producer():
-    retries = 10
+    retries = 30
     while retries > 0:
         try:
             return KafkaProducer(
