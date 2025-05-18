@@ -26,7 +26,7 @@
 
 ## 1. Einleitung
 
-Dieses Projekt implementiert eine Echtzeit-Datenverarbeitungspipeline für Kryptodaten der Krptobörse Binance und verwendet dabei Microservices, welche in Docker Containern betrieben werden. Die Daten werden über WebSocket Streams gesendet und mittels Apache Kafka, Apache Spark und PostgreSQL verarbeitet und gespeichert. Die Visualisierung der Kryptodaten sowie des Monitorings und Loggings erfolgt über Grafana-Dashboards. Gleichzeitig werden Standards in Bezug auf Datensicherheit, Datenschutz, Data Governance, Skalierbarkeit, Zuverlässigkeit und Wartbarkeit umgesetzt. 
+Dieses Projekt implementiert eine Echtzeit-Datenverarbeitungspipeline für Kryptodaten der Kryptobörse Binance und verwendet dabei Microservices, welche in Docker Containern betrieben werden. Die Daten werden über WebSocket Streams gesendet und mittels Apache Kafka, Apache Spark und PostgreSQL verarbeitet und gespeichert. Die Visualisierung der Kryptodaten sowie des Monitorings und Loggings erfolgt über Grafana-Dashboards. Gleichzeitig werden Standards in Bezug auf Datensicherheit, Datenschutz, Data Governance, Skalierbarkeit, Zuverlässigkeit und Wartbarkeit umgesetzt. 
 
 
 ## 2. Technische Rahmenbedingungen und Konzepte
@@ -35,13 +35,13 @@ Dieses Projekt implementiert eine Echtzeit-Datenverarbeitungspipeline für Krypt
 
 **Datenerfassung und -streaming:**
 - **WebSocket Producer**: Service zur Erfassung der Binance WebSocket Streams
-- **Apache Kafka Broker**: Message Broker für die Datenstreamverarbeitung
+- **Apache Kafka**: Message Broker für die Datenstreamverarbeitung
 
 
 **Datenverarbeitung:**
 - **Spark Master**: Koordination der Spark-Verarbeitung
 - **Spark Worker**: Ausführung der Datenverarbeitungsjobs
-- **Spark Submit Services**: Drei separate Services für die Verarbeitung von:
+- **Spark Submit Services**: Drei separate Services für die Definition von:
   - Trade-Daten
   - aggregierte Daten der letzten Stunde (Ticker_1h)
   - aggregierte Daten des letzten Tages (Ticker_1d)
@@ -193,7 +193,7 @@ Im größereren Fenster darunter werden alle Logs der aktuell laufenden Docker C
 
 
 ## 6. Mögliche Probleme und Lösungsansätze
-Grundsätzlich bietet das Montoring-Dashboard einen guten Überblick für eine erste Fehleranalyse. In den Logs bzw. den Weboberflächen bestimnmter Container können zusätzlich detaillietere Informationen gefunden werden. Zum Beispiel kann über die Anzahl an Nachrichten pro Sekunde in den Kafka Topics geprüft werden, ob überhaupt Daten gesendet werden. Die Anzahl der Tabelleneinträge zeigt, ob die Verarbeitung in Spark korrekt funktiniert. Somit können mögliche Fehlerquellen schnell eingegrenzt werden. 
+Grundsätzlich bietet das Montoring-Dashboard einen guten Überblick für eine erste Fehleranalyse. In den Logs bzw. den Weboberflächen bestimmter Container können zusätzlich detailliertere Informationen gefunden werden. Zum Beispiel kann über die Anzahl an Nachrichten pro Sekunde in den Kafka Topics geprüft werden, ob überhaupt Daten gesendet werden. Die Anzahl der Tabelleneinträge zeigt, ob die Verarbeitung in Spark korrekt funktioniert. Somit können mögliche Fehlerquellen schnell eingegrenzt werden. 
  
 ### 6.1 Start der Pipeline
 Nach dem Start der Docker Container mit `docker-compose up -d` kann der Start der Pipeline über zwei Möglichkeiten überprüft werden:
@@ -209,7 +209,7 @@ Nach dem Start der Docker Container mit `docker-compose up -d` kann der Start de
 </div>
 
 
-#### 6.2 WebSocket Producer
+### 6.2 WebSocket Producer
 Im Log des WebSocket Producer können weitere Informationen zu den WebSocket Streams und Kafka Topics gefunden werden. Am Anfang der Verarbeitung werden alle Streams sowie Kafka Topics registriert: 
 <div align="center">
   <img src="abbildungen/WebSocket_Producer_Log_Start.png" alt="WebSocket Producer Start">
@@ -220,8 +220,8 @@ Zusätzlich wird für jede Nachricht ein kurzer Logeintrag geschrieben. Dabei wi
   <img src="abbildungen/WebSocket_Producer_Log_Verarbeitung.png" alt="WebSocket Producer Verarbeitung">
 </div>
 
-### 6.3
-Die eigentliche Datenverarbeitung findet in den Spark-Workern statt. Dabei werden die Aufgaben, welche über die Spark-Submits definiert sind über den Spark-Master an die verschiedenen Spark-Worker verteilt. Über http://localhost:8088/ kann diese Ausführung überwacht werden.
+### 6.3 Spark
+Die eigentliche Datenverarbeitung findet in den Spark-Workern statt. Dabei werden die Aufgaben, welche über die Spark-Submits definiert werden über den Spark-Master an die verschiedenen Spark-Worker verteilt. Über http://localhost:8088/ kann diese Ausführung überwacht werden.
 <div align="center">
   <img src="abbildungen/Spark_Master.png" alt="Spark_Master">
 </div>
@@ -235,7 +235,6 @@ In den Spark-Submits (http://localhost:4041/jobs/, http://localhost:4042/jobs/, 
 
 
 Beim Start der Sparkverarbeitung wird wieder ein Verbindungstest zu Kakfa gemacht und solange gewartet, bis die benötigten Kafka Topics verfügbar sind: 
-Spark Submit 
 <div align="center">
   <img src="abbildungen/Spark_Submit_Log.png" alt="Spark_Submit_Log">
 </div>
@@ -246,8 +245,8 @@ Ein mögliches Problem kann die Zuweisung an Cores zu den einzelnen Spark-Worker
   <img src="abbildungen/Spark_Submit_Error.png" alt="Spark_Submit_Error">
 </div>
 
-Prinzipiell werden die Cores dynamisch ermittelt und beim Erstellen der Sparkumgebung gesetzt. Falls 
-Fehler mit der Zuweisung der Cores nicht funktioniert kann die Anzahl an folgender Stelle auch manuell gesetzt werden: <br>
+Prinzipiell werden die Cores dynamisch ermittelt und beim Erstellen der Sparkumgebung gesetzt. Falls
+Fehler mit der Zuweisung der Cores auftreten, kann die Anzahl an folgender Stelle auch manuell gesetzt werden: <br>
 
 `.config("spark.cores.max", cores)\` -> cores dann durch eine bestimmte Anzahl ersetzen <br>
 
